@@ -1,3 +1,22 @@
+..
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+
+
 ====================
 Applications
 ====================
@@ -36,7 +55,7 @@ This is shown in the example from :ref:`getting started <simpleexample>`
 Running
 -------
 
-There are three APIs for executing an application.
+There are four APIs for executing an application.
 
 ``step``/``astep``
 ------------------
@@ -117,19 +136,59 @@ If multiple are specified, it will stop after the first one encountered, and the
 
 .. code-block:: python
 
-    final_state, results = application.run(halt_after=["final_action_1", "final_action_2"])
+    action, result, state = application.run(
+        halt_after=["final_action_1", "final_action_2"]
+    )
 
 
 In the async context, you can run ``arun``:
 
 .. code-block:: python
 
-    final_state = await application.arun(halt_after=["final_action_1", "final_action_2"])
+    action, result, state = await application.arun(
+        halt_after=["final_action_1", "final_action_2"]
+    )
 
 .. note::
     You can add inputs to ``run``/``arun`` in the same way as you can with ``iterate`` -- it will only apply to the first action.
 
 ``run`` and ``arun`` largely have the same behavior as ``iterate`` and ``aiterate``.
+
+``stream_result``/``astream_result``
+------------------------------------
+
+These allow you to stream responses back. Note they work best with streaming actions.
+Read about them in the :ref:`streaming <streaming>` section.
+
+---------
+Graph API
+---------
+
+The application exposes a graph API, allowing you to specify it as a graph separate from application concerns.
+While you likely won't use this in your first few applications, it will become useful when you want to run it
+in a web-server (create a graph once, application many times), import the graph from another context, or run it in multiple contexts.
+
+
+.. code-block:: python
+
+    from burr.core import ApplicationBuilder, default, expr
+    graph = (
+        GraphBuilder()
+        .with_actions(human_input, ai_response)
+        .with_transitions(
+            ("human_input", "ai_response"),
+            ("ai_response", "human_input")
+        ).build()
+    )
+    app = (
+        ApplicationBuilder()
+        .with_graph(graph)
+        with_state(chat_history=[])
+        .with_entrypoint("human_input")
+        .build()
+    )
+
+You can read more about it in the :py:class:`GraphBuilder docs <burr.core.graph.GraphBuilder>`.
 
 ----------
 Inspection

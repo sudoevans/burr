@@ -1,3 +1,22 @@
+..
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+
+
 ====================
 Planned Capabilities
 ====================
@@ -6,41 +25,15 @@ These are on the roadmap (and will be part of Burr in the imminent future), but 
 
 We build fast though, so let us know which ones you need and they'll be in there before you know it!
 
------------
-Typed State
------------
 
-We plan to add the ability to type-check state with some (or all) of the following:
+------------------------------------
+Evaluation & Annotation integrations
+------------------------------------
 
-- Pydantic
-- dataclasses
-- TypedDict
-- Custom state schemas (through the ``reads``/``writes`` parameters)
+You can already annotate with the Burr UI. We have plans to:
 
-The idea is you would define state at the function level, parameterized by the state type, and Burr would be able to validate
-against that state.
-
-.. code-block:: python
-
-    class InputState(TypedDict):
-        foo: int
-        bar: str
-
-    class OutputState(TypedDict):
-        baz: int
-        qux: str
-
-    @action(reads=["foo", "bar"], writes=["baz"])
-    def my_action(state: State[InputState]) -> Tuple[dict, State[OutputState]]:
-        result = {"baz": state["foo"] + 1, "qux": state["bar"] + "!"}
-        return result, state.update(**result)
-
-The above could also be dataclasses/pydantic models. We could also add something as simple as:
-
-.. code-block:: python
-
-    @action(reads={"foo": int, "bar": str}, writes={"baz": int, "qux": str})
-    ...
+1. plug in metrics and custom callbacks/LLM as judge capabilities to enable you to evaluate what captured and annotated.
+2. SDK functionality to allow programmatic annotation and evaluation, as well as export and search of annotations.
 
 -----------------------------
 State Management/Immutability
@@ -77,28 +70,28 @@ if an exception is expected, the program will stop early. We will be adding the 
 on exceptions, which will allow you to transition to an error-handling (or retry) action that does not
 need the full outputs of the prior action.
 
-Here is what it would look liek in the current API:
+Here is what it would look like in the current API:
 
 .. code-block:: python
 
     @action(reads=["attempts"], writes=["output", "attempts"])
-    def some_flaky_action(state: State, max_retries: int=3) -> Tuple[dict, State]:
+    def some_flaky_action(state: State, max_retries: int=3) -> State:
         result = {"output": None, "attempts": state["attempts"] + 1}
         try:
             result["output"] = call_some_api(...)
-        excecpt APIException as e:
+        except APIException as e:
             if state["attempts"] >= max_retries:
                raise e
-        return result, state.update(**result)
+        return state.update(**result)
 
 One could imagine adding it as a condition (a few possibilities)
 
 .. code-block:: python
 
     @action(reads=[], writes=["output"])
-    def some_flaky_action(state: State) -> Tuple[dict, State]:
+    def some_flaky_action(state: State) -> State
         result = {"output": call_some_api(...)}
-        return result, state.update(**result)
+        return state.update(**result)
 
     builder.with_actions(
        some_flaky_action=some_flaky_action
@@ -114,16 +107,9 @@ One could imagine adding it as a condition (a few possibilities)
 
 Will have to come up with ergonomic APIs -- the above are just some ideas.
 
------------------
-Streaming results
------------------
-
-Results should be able to stream in, but we'll want to store the final output in state.
-
-Still thinking through the UX.
-
 ------------
 Integrations
 ------------
 
-Langchain is next up (using LCEL). Please request any other integrations you'd like to see.
+We already have support for Haystack, Hamilton, and LangChain.
+Please request any other integrations you'd like to see.

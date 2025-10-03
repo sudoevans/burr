@@ -1,3 +1,22 @@
+..
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+
+
 .. _tracking:
 
 =============
@@ -48,28 +67,34 @@ Debugging via Reloading Prior State
 Because the tracking client writes to the file system, you can reload the state of the state machine at any time. This is
 useful for debugging, because you can quickly recreate the issue by running the state machine with the same point in time.
 
-To do so, you'd use the classmethod _load_state()_ on the :py:class:`LocalTrackingClient <burr.tracking.LocalTrackingClient>`.
+To do so, you'd use the classmethod _load()_ on the :py:class:`LocalTrackingClient <burr.tracking.LocalTrackingClient>`.
 
-For example, as you initialize the Burr Application, you'd have some control flow like this:
+For example, to debug your Burr Application, you'd have some control flow like this using the `.initialize_from(...)` and `fork_from_*` functionality:
 
 .. code-block:: python
 
-    from burr.tracking import client
+    from burr.tracking import LocalTrackingClient
 
-    project_name = "demo:hamilton-multi-agent"
-    if app_instance_id:
-        initial_state, entry_point = client.LocalTrackingClient.load_state(
-            project_name, app_instance_id
-        )
-        # TODO: any custom logic for re-creating the state if it's some object that needs to be re-instantiated
-    else:
-        initial_state, entry_point = default_state_and_entry_point()
+    prior_app_id = ... # some value
+    sequence_id = ... # None or some prior step
+    partition_key = "SOME_VALUE" # use None if not using a partition key
 
+    project_name = "PROJECT_NAME"
+    tracker = LocalTrackingClient(project=project_name)
     app = (
         ApplicationBuilder()
-        .with_state(**initial_state)
-        .with_entry_point(entry_point)
-        # ... etc fill in the rest here
+        .with_graph(base_graph) # your graph
+        .initialize_from(
+            tracker, # local tracker above
+            resume_at_next_action=True,
+            default_state={}, # your default state
+            default_entrypoint="SOME_DEFAULT", # your default entry point
+            fork_from_app_id=prior_app_id,
+            fork_from_sequence_id=sequence_id,
+            fork_from_partition_key=partition_key
+        )
+        .with_tracker(tracker)  # tracking + checkpointing; one line 🪄.
+        .build()
     )
 
 ---------------
@@ -84,3 +109,25 @@ run it with the following command:
     burr
 
 This will start a server on port 7241, and open up a browser window with the UI for you to explore.
+
+
+Launch Burr UI from a notebook
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can launch the Burr UI from a notebook or Google Colab using the ``%burr_ui`` "IPython magic".
+This will print the URL to access the Burr UI web app.
+
+.. code-block:: python
+
+    # in one cell - expose the port:
+    %load_ext burr.integrations.notebook
+    %burr_ui
+
+    "Burr UI: http://127.0.0.1:7241"
+
+.. code-block:: python
+
+    # But you need to expose the port to the browser:
+    from google.colab import output
+    output.serve_kernel_port_as_window(7241) # this will open a new window
+    output.serve_kernel_port_as_iframe(7241) # this will inline in an iframe
