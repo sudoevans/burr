@@ -1,3 +1,22 @@
+..
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+
+
 .. _serde:
 
 ================================
@@ -23,13 +42,13 @@ Customizing Serialization/Deserialization
 -----------------------------------------
 Here's a video walkthrough of how to add custom type and field serialization/deserialization:
 
-.. raw:: html
+.. image:: /_static/video_Squ5IAeQBzc_thumbnail.jpg
+   :target: https://www.youtube.com/watch?v=Squ5IAeQBzc
+   :alt: Serialization Video
+   :align: center
+   :width: 600px
 
-    <div>
-        <iframe width="800" height="455" src="https://www.youtube.com/embed/Squ5IAeQBzc?si=6l6e0SJ0EqEjAW2K" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-    </div>
-
-See `this example <https://github.com/DAGWorks-Inc/burr/tree/main/examples/custom-serde>`_ for the notebook.
+See `this example <https://github.com/apache/burr/tree/main/examples/custom-serde>`_ for the notebook.
 
 Type based serialization/deserialization
 _____________________________________________________

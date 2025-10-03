@@ -30,7 +30,7 @@ Developer notes
 CLI
 ---
 
-Burr comes with a `cli` that is both user/developer facing.
+Apache Burr comes with a `cli` that is both user/developer facing.
 
 **this is required in order to publish, do not do so otherwise**
 
