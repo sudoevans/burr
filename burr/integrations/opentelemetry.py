@@ -499,19 +499,20 @@ class BurrTrackingSpanProcessor(SpanProcessor):
                         app_id=parent_span.app_id,
                     ),
                 )
-                self.tracker.pre_start_span(
-                    action=context.action_span.action,
-                    action_sequence_id=context.action_span.action_sequence_id,
-                    span=context.action_span,
-                    span_dependencies=[],  # TODO -- log
-                    app_id=context.app_id,
-                    partition_key=context.partition_key,
-                )
+                if self.tracker is not None:
+                    self.tracker.pre_start_span(
+                        action=context.action_span.action,
+                        action_sequence_id=context.action_span.action_sequence_id,
+                        span=context.action_span,
+                        span_dependencies=[],  # TODO -- log
+                        app_id=context.app_id,
+                        partition_key=context.partition_key,
+                    )
 
     def on_end(self, span: "Span") -> None:
         cached_span = get_cached_span(span.get_span_context().span_id)
         # If this is none it means we're outside of the burr context
-        if cached_span is not None:
+        if cached_span is not None and self.tracker is not None:
             # TODO -- get tracker context to work
             self.tracker.post_end_span(
                 action=cached_span.action_span.action,

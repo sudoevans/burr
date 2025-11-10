@@ -232,7 +232,7 @@ def _state_update(state_to_modify: State, modified_state: State) -> State:
 
 def _validate_reducer_writes(reducer: Reducer, state: State, name: str) -> None:
     required_writes = reducer.writes
-    missing_writes = set(reducer.writes) - state.keys()
+    missing_writes = set(reducer.writes) - set(state.keys())
     if len(missing_writes) > 0:
         raise ValueError(
             f"State is missing write keys after running: {name}. Missing keys are: {missing_writes}. "

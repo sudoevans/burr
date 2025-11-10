@@ -57,6 +57,7 @@ from burr.core.application import (
     _run_reducer,
     _run_single_step_action,
     _run_single_step_streaming_action,
+    _validate_reducer_writes,
     _validate_start,
 )
 from burr.core.graph import Graph, GraphBuilder, Transition
@@ -484,6 +485,48 @@ def test__run_reducer_deletes_state():
     state = State({"count": 0})
     state = _run_reducer(reducer, state, {}, "deletion_reducer")
     assert "count" not in state
+
+
+def test__validate_reducer_writes_with_state_keys_returning_list():
+    """Tests that _validate_reducer_writes works when state.keys() returns a list.
+
+    This is a regression test for a bug where state.keys() could return a list
+    instead of a set, causing a TypeError when trying to do set subtraction.
+    """
+    # Create a reducer with some expected writes
+    reducer = PassedInAction(
+        reads=["input"],
+        writes=["output", "result"],
+        fn=...,
+        update_fn=lambda result, state: state.update(**result),
+        inputs=[],
+    )
+
+    # Create a state that has all the required writes
+    state = State({"input": 1, "output": 2, "result": 3})
+
+    # This should not raise a TypeError even if state.keys() returns a list
+    # (which was the original bug)
+    _validate_reducer_writes(reducer, state, "test_action")
+
+
+def test__validate_reducer_writes_raises_on_missing_keys():
+    """Tests that _validate_reducer_writes raises ValueError when required keys are missing."""
+    # Create a reducer with some expected writes
+    reducer = PassedInAction(
+        reads=["input"],
+        writes=["output", "result", "missing_key"],
+        fn=...,
+        update_fn=lambda result, state: state.update(**result),
+        inputs=[],
+    )
+
+    # Create a state that is missing some required writes
+    state = State({"input": 1, "output": 2, "result": 3})
+
+    # This should raise a ValueError for missing "missing_key"
+    with pytest.raises(ValueError, match="missing_key"):
+        _validate_reducer_writes(reducer, state, "test_action")
 
 
 async def test__arun_function():
