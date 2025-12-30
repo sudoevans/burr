@@ -54,7 +54,7 @@ def determine_clarifications(state: State) -> State:
     client = _get_openai_client()
     # TODO -- use instructor to get a pydantic model
     result = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4o-mini",
         messages=[
             {
                 "role": "system",
@@ -130,7 +130,7 @@ def formulate_draft(state: State) -> Tuple[dict, State]:
     prompt = " ".join(instructions)
 
     result = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4o-mini",
         messages=[
             {
                 "role": "system",
