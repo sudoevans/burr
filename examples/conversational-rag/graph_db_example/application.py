@@ -145,7 +145,7 @@ def AI_create_cypher_query(state: State, client: openai.Client) -> tuple[dict, S
     messages = state["chat_history"]
     # Call the function
     response = client.chat.completions.create(
-        model="gpt-4-turbo-preview",
+        model="gpt-4o-mini",
         messages=messages,
         tools=[run_cypher_query_tool_description],
         tool_choice="auto",
@@ -193,7 +193,7 @@ def AI_generate_response(state: State, client: openai.Client) -> tuple[dict, Sta
     """AI step to generate the response."""
     messages = state["chat_history"]
     response = client.chat.completions.create(
-        model="gpt-4-turbo-preview",
+        model="gpt-4o-mini",
         messages=messages,
     )  # get a new response from the model where it can see the function response
     response_message = response.choices[0].message
