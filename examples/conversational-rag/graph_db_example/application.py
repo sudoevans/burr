@@ -66,7 +66,7 @@ def schema_to_prompt(schema):
     return prompt
 
 
-def set_inital_chat_history(schema_prompt: str) -> list[dict]:
+def set_initial_chat_history(schema_prompt: str) -> list[dict]:
     SYSTEM_MESSAGE = "You are a Cypher expert with access to a directed knowledge graph\n"
     SYSTEM_MESSAGE += schema_prompt
     SYSTEM_MESSAGE += (
@@ -212,7 +212,7 @@ def build_application(
     # create a prompt from it
     schema_prompt = schema_to_prompt(schema)
     # set the initial chat history
-    base_messages = set_inital_chat_history(schema_prompt)
+    base_messages = set_initial_chat_history(schema_prompt)
 
     tracker = LocalTrackingClient("ufc-falkor")
     # create graph
