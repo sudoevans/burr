@@ -68,7 +68,7 @@ def query_openai(system_instructions, human_message_content, stream=False):
     messages.append(system_message)
     messages.append(human_message)
 
-    response = client.chat.completions.create(model="gpt-4o", messages=messages, stream=stream)
+    response = client.chat.completions.create(model="gpt-4o-mini", messages=messages, stream=stream)
     content = response.choices[0].message.content
     return content
 
