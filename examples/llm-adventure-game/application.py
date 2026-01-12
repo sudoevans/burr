@@ -58,7 +58,7 @@ def prompt_for_challenge(state: State) -> Tuple[dict, State]:
 )
 def evaluate_attempt(state: State) -> Tuple[dict, State]:
     result = Client().chat.completions.create(
-        model="gpt-4",
+        model="gpt-4o-mini",
         messages=[
             {
                 "role": "system",
