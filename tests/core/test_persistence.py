@@ -110,7 +110,12 @@ def test_sqlite_persister_save_without_initialize_raises_runtime_error():
     try:
         with pytest.raises(RuntimeError, match="Uninitialized persister"):
             persister.save(
-                "partition_key", "app_id", 1, "position", State({"key": "value"}), "completed"
+                "partition_key",
+                "app_id",
+                1,
+                "position",
+                State({"key": "value"}),
+                "completed",
             )
     finally:
         persister.cleanup()
@@ -166,17 +171,6 @@ from burr.core.persistence import AsyncInMemoryPersister
 from burr.integrations.persisters.b_aiosqlite import AsyncSQLitePersister
 
 """Asyncio integration for sqlite persister + """
-
-
-class AsyncSQLiteContextManager:
-    def __init__(self, sqlite_object):
-        self.client = sqlite_object
-
-    async def __aenter__(self):
-        return self.client
-
-    async def __aexit__(self, exc_type, exc, tb):
-        await self.client.close()
 
 
 @pytest.fixture()
@@ -276,15 +270,15 @@ async def test_AsyncSQLitePersister_connection_shutdown():
 
 @pytest.fixture()
 async def initializing_async_persistence():
-    sqlite_persister = await AsyncSQLitePersister.from_values(
+    async with AsyncSQLitePersister.from_values(
         db_path=":memory:", table_name="test_table"
-    )
-    async_context_manager = AsyncSQLiteContextManager(sqlite_persister)
-    async with async_context_manager as client:
+    ) as client:
         yield client
 
 
-async def test_async_persistence_initialization_creates_table(initializing_async_persistence):
+async def test_async_persistence_initialization_creates_table(
+    initializing_async_persistence,
+):
     await asyncio.sleep(0.00001)
     await initializing_async_persistence.initialize()
     assert await initializing_async_persistence.list_app_ids("partition_key") == []
