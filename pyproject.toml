@@ -89,7 +89,7 @@ tests = [
   "langchain_core",
   "langchain_community",
   "pandas",
-  "pydantic[email]",
+  "pydantic[email]>=2.0",
   "pyarrow",
   "apache-burr[aiosqlite]",
   "apache-burr[asyncpg]",
@@ -120,7 +120,7 @@ documentation = [
 ]
 
 tracking-client = [
-  "pydantic>1"
+  "pydantic>=2.0"
 ]
 
 tracking-client-s3 = [
@@ -141,7 +141,7 @@ tracking-server = [
   "click",
   "fastapi",
   "uvicorn",
-  "pydantic",
+  "pydantic>=2.0",
   "pydantic-settings",
   "fastapi-pagination",
   "fastapi-utils",
@@ -153,7 +153,7 @@ tracking-server = [
 ]
 
 pydantic = [
-  "pydantic"
+  "pydantic>=2.0"
 ]
 
 haystack = [
