@@ -1,3 +1,9 @@
+/*
+ * Copied from shadcn/ui (https://ui.shadcn.com)
+ * Licensed under the MIT License.
+ * Copyright (c) 2023 shadcn
+ */
+
 "use client"
 
 import { Button as ButtonPrimitive } from "@base-ui/react/button"

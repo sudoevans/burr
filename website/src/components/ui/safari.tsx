@@ -1,3 +1,9 @@
+/*
+ * Copied from Magic UI (https://magicui.design)
+ * Licensed under the MIT License.
+ * Copyright (c) Magic UI
+ */
+
 import type { HTMLAttributes } from "react"
 
 const SAFARI_WIDTH = 1203

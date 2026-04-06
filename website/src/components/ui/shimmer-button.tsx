@@ -1,3 +1,9 @@
+/*
+ * Copied from Magic UI (https://magicui.design)
+ * Licensed under the MIT License.
+ * Copyright (c) Magic UI
+ */
+
 import React, { type ComponentPropsWithoutRef, type CSSProperties } from "react"
 
 import { cn } from "@/lib/utils"

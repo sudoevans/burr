@@ -1,3 +1,9 @@
+/*
+ * Copied from Magic UI (https://magicui.design)
+ * Licensed under the MIT License.
+ * Copyright (c) Magic UI
+ */
+
 import {
   type ComponentPropsWithoutRef,
   type CSSProperties,
