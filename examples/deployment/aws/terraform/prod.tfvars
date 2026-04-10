@@ -15,14 +15,26 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import importlib.metadata
+# Production environment configuration
+# Bucket name is auto-generated: burr-tracking-{env}-{region}-{account_id}-{random}
+# account_id: leave empty to auto-fetch from AWS credentials, or set explicitly
 
-try:
-    __version__ = importlib.metadata.version("apache-burr")
-except importlib.metadata.PackageNotFoundError:
-    try:
-        # Fallback for older installations
-        __version__ = importlib.metadata.version("burr")
-    except importlib.metadata.PackageNotFoundError:
-        # Development / source tree: no package metadata
-        __version__ = "0.0.0.dev"
+aws_region  = "us-east-1"
+environment = "prod"
+
+# account_id = ""   # Optional. Empty = auto-fetch. Or set: account_id = "123456789012"
+
+sqs_queue_name = "burr-s3-events-prod"
+
+enable_sqs = true
+
+log_retention_days      = 90
+snapshot_retention_days = 30
+
+sqs_message_retention_seconds  = 1209600
+sqs_visibility_timeout_seconds = 300
+sqs_receive_wait_time_seconds   = 20
+sqs_max_receive_count           = 3
+
+# Optional: receive email when messages land in DLQ
+# dlq_alarm_notification_emails = ["ops@example.com"]

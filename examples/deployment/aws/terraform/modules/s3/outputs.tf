@@ -15,14 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import importlib.metadata
+output "bucket_id" {
+  description = "ID of the S3 bucket"
+  value       = aws_s3_bucket.this.id
+}
 
-try:
-    __version__ = importlib.metadata.version("apache-burr")
-except importlib.metadata.PackageNotFoundError:
-    try:
-        # Fallback for older installations
-        __version__ = importlib.metadata.version("burr")
-    except importlib.metadata.PackageNotFoundError:
-        # Development / source tree: no package metadata
-        __version__ = "0.0.0.dev"
+output "bucket_arn" {
+  description = "ARN of the S3 bucket"
+  value       = aws_s3_bucket.this.arn
+}

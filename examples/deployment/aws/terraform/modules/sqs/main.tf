@@ -15,14 +15,30 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import importlib.metadata
+resource "aws_sqs_queue" "main" {
+  name                       = var.queue_name
+  message_retention_seconds  = var.message_retention_seconds
+  visibility_timeout_seconds = var.visibility_timeout_seconds
+  receive_wait_time_seconds  = var.receive_wait_time_seconds
 
-try:
-    __version__ = importlib.metadata.version("apache-burr")
-except importlib.metadata.PackageNotFoundError:
-    try:
-        # Fallback for older installations
-        __version__ = importlib.metadata.version("burr")
-    except importlib.metadata.PackageNotFoundError:
-        # Development / source tree: no package metadata
-        __version__ = "0.0.0.dev"
+  tags = merge(var.tags, {
+    Name = var.queue_name
+  })
+}
+
+resource "aws_sqs_queue" "dlq" {
+  name                      = "${var.queue_name}-dlq"
+  message_retention_seconds = var.dlq_message_retention_seconds
+
+  tags = merge(var.tags, {
+    Name = "${var.queue_name}-dlq"
+  })
+}
+
+resource "aws_sqs_queue_redrive_policy" "main" {
+  queue_url = aws_sqs_queue.main.id
+  redrive_policy = jsonencode({
+    deadLetterTargetArn = aws_sqs_queue.dlq.arn
+    maxReceiveCount     = var.max_receive_count
+  })
+}

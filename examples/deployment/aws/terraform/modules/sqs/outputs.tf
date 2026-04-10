@@ -15,14 +15,32 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import importlib.metadata
+output "queue_id" {
+  description = "URL of the SQS queue"
+  value       = aws_sqs_queue.main.id
+}
 
-try:
-    __version__ = importlib.metadata.version("apache-burr")
-except importlib.metadata.PackageNotFoundError:
-    try:
-        # Fallback for older installations
-        __version__ = importlib.metadata.version("burr")
-    except importlib.metadata.PackageNotFoundError:
-        # Development / source tree: no package metadata
-        __version__ = "0.0.0.dev"
+output "queue_url" {
+  description = "URL of the SQS queue"
+  value       = aws_sqs_queue.main.url
+}
+
+output "queue_arn" {
+  description = "ARN of the SQS queue"
+  value       = aws_sqs_queue.main.arn
+}
+
+output "dlq_url" {
+  description = "URL of the dead letter queue"
+  value       = aws_sqs_queue.dlq.url
+}
+
+output "dlq_arn" {
+  description = "ARN of the dead letter queue"
+  value       = aws_sqs_queue.dlq.arn
+}
+
+output "dlq_name" {
+  description = "Name of the dead letter queue (for CloudWatch dimensions)"
+  value       = aws_sqs_queue.dlq.name
+}

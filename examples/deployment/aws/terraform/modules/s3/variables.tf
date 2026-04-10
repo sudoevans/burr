@@ -15,14 +15,24 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import importlib.metadata
+variable "bucket_name" {
+  description = "Name of the S3 bucket"
+  type        = string
+}
 
-try:
-    __version__ = importlib.metadata.version("apache-burr")
-except importlib.metadata.PackageNotFoundError:
-    try:
-        # Fallback for older installations
-        __version__ = importlib.metadata.version("burr")
-    except importlib.metadata.PackageNotFoundError:
-        # Development / source tree: no package metadata
-        __version__ = "0.0.0.dev"
+variable "lifecycle_rules" {
+  description = "List of lifecycle rules for the bucket"
+  type = list(object({
+    id              = string
+    prefix          = string
+    enabled         = bool
+    expiration_days = number
+    noncurrent_days = optional(number)
+  }))
+}
+
+variable "tags" {
+  description = "Tags to apply to resources"
+  type        = map(string)
+  default     = {}
+}

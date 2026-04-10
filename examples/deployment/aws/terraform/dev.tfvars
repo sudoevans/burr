@@ -15,14 +15,24 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import importlib.metadata
+# Development environment configuration
+# Bucket name is auto-generated: burr-tracking-{env}-{region}-{account_id}-{random}
+# account_id: leave empty to auto-fetch from AWS credentials, or set explicitly
 
-try:
-    __version__ = importlib.metadata.version("apache-burr")
-except importlib.metadata.PackageNotFoundError:
-    try:
-        # Fallback for older installations
-        __version__ = importlib.metadata.version("burr")
-    except importlib.metadata.PackageNotFoundError:
-        # Development / source tree: no package metadata
-        __version__ = "0.0.0.dev"
+aws_region  = "us-east-1"
+environment = "dev"
+
+# account_id = ""   # Optional. Empty = auto-fetch. Or set: account_id = "123456789012"
+
+sqs_queue_name = "burr-s3-events-dev"
+
+# S3 only (polling mode) - simpler for dev; set to true for event-driven
+enable_sqs = false
+
+log_retention_days      = 30
+snapshot_retention_days = 14
+
+sqs_message_retention_seconds  = 86400
+sqs_visibility_timeout_seconds = 120
+sqs_receive_wait_time_seconds  = 20
+sqs_max_receive_count          = 3

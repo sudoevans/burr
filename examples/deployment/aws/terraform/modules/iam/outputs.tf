@@ -15,14 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import importlib.metadata
+output "role_arn" {
+  description = "ARN of the IAM role"
+  value       = aws_iam_role.burr_server.arn
+}
 
-try:
-    __version__ = importlib.metadata.version("apache-burr")
-except importlib.metadata.PackageNotFoundError:
-    try:
-        # Fallback for older installations
-        __version__ = importlib.metadata.version("burr")
-    except importlib.metadata.PackageNotFoundError:
-        # Development / source tree: no package metadata
-        __version__ = "0.0.0.dev"
+output "role_name" {
+  description = "Name of the IAM role"
+  value       = aws_iam_role.burr_server.name
+}
