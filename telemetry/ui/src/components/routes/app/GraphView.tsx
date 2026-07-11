@@ -20,7 +20,7 @@
 import { ActionModel, ApplicationModel, Step } from '../../../api';
 
 import dagre from 'dagre';
-import React, { createContext, useLayoutEffect, useRef, useState } from 'react';
+import React, { createContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
   BaseEdge,
   Controls,
@@ -39,8 +39,6 @@ import { backgroundColorsForIndex } from './AppView';
 import { getActionStatus } from '../../../utils';
 import { getSmartEdge } from '@tisoap/react-flow-smart-edge';
 
-const dagreGraph = new dagre.graphlib.Graph();
-
 const dagreOptions = {
   rankdir: 'TB', // Top to bottom layout (equivalent to ELK's UP direction)
   nodesep: 80, // Node separation (equivalent to elk.spacing.nodeNode)
@@ -49,17 +47,9 @@ const dagreOptions = {
   marginy: 20
 };
 
-type ActionNodeData = {
-  action: ActionModel;
+type NodeData = {
   label: string;
 };
-
-type InputNodeData = {
-  input: string;
-  label: string;
-};
-
-type NodeData = ActionNodeData | InputNodeData;
 
 type NodeType = {
   id: string;
@@ -95,10 +85,9 @@ const ActionNode = (props: { data: NodeData }) => {
     currentAction
   } = React.useContext(NodeStateProvider);
   const highlightedActions = [currentAction, ...(previousActions || [])].reverse();
-  const data = props.data as ActionNodeData;
-  const name = data.action.name;
+  const name = props.data.label;
   const indexOfAction = highlightedActions.findIndex(
-    (step) => step?.step_start_log.action === data.action.name
+    (step) => step?.step_start_log.action === name
   );
   const shouldHighlight = indexOfAction !== -1;
   const step = highlightedActions[indexOfAction];
@@ -138,6 +127,10 @@ const InputNode = (props: { data: NodeData }) => {
     </>
   );
 };
+// Past this size, smart-edge A* pathfinding is too slow to run at all -- a 300-node graph
+// never finishes its initial render. See https://github.com/apache/burr/issues/833
+const SMART_EDGE_NODE_LIMIT = 100;
+
 // TODO -- separate out into different edge types
 export const ActionActionEdge = ({
   sourceX,
@@ -159,20 +152,24 @@ export const ActionActionEdge = ({
   );
   const containsTo = allActionsInPath.some((action) => action.step_start_log.action === data.to);
   const shouldHighlight = containsFrom && containsTo;
-  const getSmartEdgeResponse = getSmartEdge({
-    sourcePosition,
-    targetPosition,
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    nodes
-  });
-  let edgePath = null;
-  if (getSmartEdgeResponse !== null) {
-    edgePath = getSmartEdgeResponse.svgPathString;
-  } else {
-    edgePath = getBezierPath({
+  // Memoized: highlight changes re-render every edge, and pathfinding must not rerun then.
+  // See https://github.com/apache/burr/issues/833
+  const edgePath = useMemo(() => {
+    if (nodes.length <= SMART_EDGE_NODE_LIMIT) {
+      const getSmartEdgeResponse = getSmartEdge({
+        sourcePosition,
+        targetPosition,
+        sourceX,
+        sourceY,
+        targetX,
+        targetY,
+        nodes
+      });
+      if (getSmartEdgeResponse !== null) {
+        return getSmartEdgeResponse.svgPathString;
+      }
+    }
+    return getBezierPath({
       sourceX,
       sourceY,
       sourcePosition,
@@ -180,7 +177,7 @@ export const ActionActionEdge = ({
       targetY,
       targetPosition
     })[0];
-  }
+  }, [nodes, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition]);
 
   const style = {
     markerColor: shouldHighlight ? 'black' : 'gray',
@@ -188,7 +185,7 @@ export const ActionActionEdge = ({
   };
   return (
     <>
-      <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} label={'test'} />
+      <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} />
     </>
   );
 };
@@ -201,7 +198,8 @@ const getLayoutedElements = (
   const isHorizontal = options?.['direction'] === 'LR';
   const direction = isHorizontal ? 'LR' : 'TB';
 
-  // Configure dagre graph
+  // Fresh graph per layout -- a shared one accumulates stale nodes across applications
+  const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   dagreGraph.setGraph({
     ...dagreOptions,
@@ -260,7 +258,7 @@ const convertApplicationToGraph = (
   const allActionNodes = stateMachine.actions.map((action) => ({
     id: action.name,
     type: 'action',
-    data: { action, label: action.name },
+    data: { label: action.name },
     position: { x: 0, y: 0 }
   }));
   // TODO -- consider displaying optional inputs
@@ -268,7 +266,7 @@ const convertApplicationToGraph = (
     (action.inputs || []).filter(shouldDisplayInput).map((input) => ({
       id: inputUniqueID(action, input),
       type: 'externalInput',
-      data: { input, label: input },
+      data: { label: input },
       position: { x: 0, y: 0 }
     }))
   );
@@ -329,6 +327,17 @@ export const _Graph = (props: {
 
   const { fitView } = useReactFlow();
 
+  // Keyed on the rendered structure rather than object identity: refetches and focus
+  // switches that don't change the graph must not trigger a full relayout.
+  // See https://github.com/apache/burr/issues/833
+  const structureKey = useMemo(() => {
+    const [nextNodes, nextEdges] = convertApplicationToGraph(props.stateMachine, showInputs);
+    return JSON.stringify([
+      nextNodes.map((node) => [node.id, node.type]),
+      nextEdges.map((edge) => [edge.source, edge.target, edge.data.condition])
+    ]);
+  }, [props.stateMachine, showInputs]);
+
   useLayoutEffect(() => {
     const [nextNodes, nextEdges] = convertApplicationToGraph(props.stateMachine, showInputs);
 
@@ -340,16 +349,21 @@ export const _Graph = (props: {
         window.requestAnimationFrame(() => fitView());
       }
     );
-  }, [showInputs, props.stateMachine, fitView]);
+    // showInputs is covered by structureKey: toggling it changes the rendered node ids
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [structureKey, fitView]);
+
+  const nodeState = useMemo(
+    () => ({
+      highlightedActions: props.previousActions,
+      hoverAction: props.hoverAction,
+      currentAction: props.currentAction
+    }),
+    [props.previousActions, props.hoverAction, props.currentAction]
+  );
 
   return (
-    <NodeStateProvider.Provider
-      value={{
-        highlightedActions: props.previousActions,
-        hoverAction: props.hoverAction,
-        currentAction: props.currentAction
-      }}
-    >
+    <NodeStateProvider.Provider value={nodeState}>
       <div className="h-full w-full relative">
         <label className="absolute top-2 left-2 z-10 bg-white p-2 rounded shadow">
           <input type="checkbox" checked={showInputs} onChange={() => setShowInputs(!showInputs)} />
