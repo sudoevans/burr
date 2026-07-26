@@ -216,6 +216,7 @@ developer = [
   "build",
   "twine",
   "pre-commit",
+  "tomli; python_version < '3.11'",
 ]
 
 opentelemetry = [
@@ -289,6 +290,7 @@ exclude = [
   ".git/**",
   ".github/**",
   "docs/**",
+  "website/**",
   # Exclude VCS and system files
   ".gitignore",
   ".gitmodules",
@@ -301,6 +303,7 @@ exclude = [
   # NOTE: If you add/remove examples, update this list AND tests/test_release_config.py
   "examples/README.md",
   "examples/validate_examples.py",
+  "examples/fastapi_mount_example.py",
   "examples/adaptive-crag/**",
   "examples/conversational-rag/**",
   "examples/custom-serde/**",
